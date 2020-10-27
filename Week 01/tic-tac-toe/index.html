@@ -28,8 +28,10 @@
       [0,0,0],
     ];
 
-    function show(){
+    let color = 1;
+    function show(pattern){
       let board = document.getElementById("board");
+      board.innerHTML= "";
       for(let i=0;i<3;i++){
         for(let j=0;j<3;j++){
           let cell = document.createElement("div");
@@ -37,12 +39,18 @@
           cell.innerText = 
           pattern[j][i] == 2?"❌":
           pattern[j][i] == 1?"⭕️":"";
-          board.append(cell);
+          cell.addEventListener("click",()=>move(j,i));
+          board.appendChild(cell);
         }
         board.appendChild(document.createElement("br"));
       }
     }
-    show();
+    function move(y,x){
+      pattern[y][x]=color;
+      color = 3-color;
+      show(pattern);
+    }
+    show(pattern);
   </script>
 </body>
 </html>
