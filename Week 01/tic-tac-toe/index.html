@@ -28,7 +28,7 @@
       [0,0,0],
     ];
 
-    let color = 1;
+    let color = 2;  // 1代表⭕️  2代表❌
     function show(pattern){
       let board = document.getElementById("board");
       board.innerHTML= "";
@@ -37,18 +37,74 @@
           let cell = document.createElement("div");
           cell.classList.add("cell");
           cell.innerText = 
-          pattern[j][i] == 2?"❌":
-          pattern[j][i] == 1?"⭕️":"";
-          cell.addEventListener("click",()=>move(j,i));
+          pattern[i][j] == 2?"❌":
+          pattern[i][j] == 1?"⭕️":"";
+          cell.addEventListener("click",()=>move(i,j));
           board.appendChild(cell);
         }
         board.appendChild(document.createElement("br"));
       }
     }
-    function move(y,x){
-      pattern[y][x]=color;
+    function move(x,y){
+      pattern[x][y]=color;
+      if(check()){
+        alert(color ==1?"⭕️ is the winner!":"❌ is the winner!")
+      }
       color = 3-color;
       show(pattern);
+    }
+    function check(){
+      //三行检查
+      for(let i=0;i<3;i++){
+        let win = true;
+        for(let j=0;j<3;j++){
+          if(pattern[i][j]!== color){
+            win = false;
+            break;
+          }
+        }
+        if(win)
+          return true;
+      }
+
+      //三列检查
+      for(let i=0;i<3;i++){
+        let win = true;
+        for(let j=0;j<3;j++){
+          if(pattern[j][i]!== color){
+            win = false;
+            break;
+          }
+        }
+        if(win)
+          return true;
+      }
+      //左下-右上
+      {
+        let win = true;
+        for(let j=0;j<3;j++){
+          if(pattern[j][2-j]!== color){
+            win = false;
+            break;
+          }
+        }
+        if(win)
+          return true;
+      }
+      //左上-右下
+      {
+        let win = true;
+        for(let j=0;j<3;j++){
+          if(pattern[j][j]!== color){
+            win = false;
+            break;
+          }
+        }
+        if(win)
+          return true;
+      }
+      return false;
+
     }
     show(pattern);
   </script>
