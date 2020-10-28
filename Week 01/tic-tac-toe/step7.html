@@ -1,0 +1,173 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TicTacToe</title>
+  <style>
+    .cell {
+      width: 100px;
+      height: 100px;
+      background-color: green;
+      display: inline-block;
+      border: solid 1px white;
+      vertical-align: middle;
+      line-height: 100px;
+      font-size: 50px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="board"></div>
+  
+  <script>
+    let pattern = [
+      0,0,0,
+      0,0,0,
+      0,0,0,
+    ];
+
+    let color = 1;  // 1代表⭕️  2代表❌
+
+    // step7中，巧妙的使用了原型继承来实现clone
+    function clone(pattern){
+      // return JSON.parse(JSON.stringify(pattern));
+      return Object.create(pattern);
+    }
+
+    function show(pattern){
+      let board = document.getElementById("board");
+      board.innerHTML= "";
+      for(let i=0;i<3;i++){
+        for(let j=0;j<3;j++){
+          let cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.innerText = 
+          pattern[i*3+j] == 2?"❌":
+          pattern[i*3+j] == 1?"⭕️":"";
+          cell.addEventListener("click",()=>move(i,j));
+          board.appendChild(cell);
+        }
+        board.appendChild(document.createElement("br"));
+      }
+    }
+    function move(x,y){
+      pattern[x*3+y]=color;
+      if(check(pattern,color)){
+        alert(color ==1?"⭕️ is the winner!":"❌ is the winner!")
+      }
+      color = 3-color;
+      show(pattern);
+
+      if(willWin(pattern,color)){
+        console.log(color ==1?"⭕️ will win!":"❌ will win!")
+      }
+      console.log(bestChoice(pattern,color)); //每次move之后都给出一个最佳选择
+    }
+
+    function willWin(pattern,color){
+      //三行检查
+      for(let i=0;i<3;i++){
+        for(let j=0;j<3;j++){
+          if(pattern[i*3+j]!==0)
+            continue;
+          let tmp = clone(pattern);
+          tmp[i*3+j] = color;
+          if(check(tmp,color)){
+            return [i,j];
+          }
+        }
+      }
+      return false;
+    }
+
+    function bestChoice(pattern,color){
+      let p ;
+      if(p = willWin(pattern,color) ){
+        return {
+          point:p,
+          result:1
+        }
+      }
+
+      let result = -2; //-2:初始值，最差情况 
+      let point = null;
+      for(let i=0;i<3;i++){
+        for(let j=0;j<3;j++){
+          if(pattern[i*3+j]) //如果不是空的继续找
+            continue;
+
+          let tmp = clone(pattern);
+          tmp[i*3+j] = color;
+          let r = bestChoice(tmp,3-color).result;
+          if(-r > result){ // 如果对方的选择比当前保存的最差选择还更差，则走这一步
+            result = -r;
+            point = [i,j]
+          }
+        }  
+      }
+      return {
+        point:point,
+        result:point?result:0
+      }
+
+    }
+    
+    function check(pattern,color){
+      //三行检查
+      for(let i=0;i<3;i++){
+        let win = true;
+        for(let j=0;j<3;j++){
+          if(pattern[i*3+j]!== color){
+            win = false;
+            break;
+          }
+        }
+        if(win)
+          return true;
+      }
+
+      //三列检查
+      for(let i=0;i<3;i++){
+        let win = true;
+        for(let j=0;j<3;j++){
+          if(pattern[j*3+i]!== color){
+            win = false;
+            break;
+          }
+        }
+        if(win)
+          return true;
+      }
+      //左下-右上
+      {
+        let win = true;
+        for(let j=0;j<3;j++){
+          if(pattern[j*3+2-j]!== color){
+            win = false;
+            break;
+          }
+        }
+        if(win)
+          return true;
+      }
+      //左上-右下
+      {
+        let win = true;
+        for(let j=0;j<3;j++){
+          if(pattern[j*3+j]!== color){
+            win = false;
+            break;
+          }
+        }
+        if(win)
+          return true;
+      }
+      return false;
+    }
+    show(pattern);
+    console.log(bestChoice(pattern,color));
+  </script>
+</body>
+</html>
