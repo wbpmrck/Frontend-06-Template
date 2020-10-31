@@ -1,0 +1,242 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chess</title>
+
+    <style>
+        #chess-board {
+            position: relative;
+            display: inline-block;
+            vertical-align: top;
+        }
+        #chess-board::after {
+            content:"";
+            position: absolute;
+            top:0;
+            right:0;
+            transform: translateX(110%);
+        }
+        #chess-board[status="1"]::after {
+            content:"当前轮到:黑棋";
+        }
+        #chess-board[status="2"]::after {
+            content:"当前轮到:白棋";
+        }
+        #chess-board[status="3"]::after {
+            content:"黑棋获胜";
+        }
+        #chess-board[status="4"]::after {
+            content:"白棋获胜";
+        }
+        #chess-board[status="5"]::after {
+            content:"平局";
+        }
+        .cell {
+            position: relative;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: solid 1px #000;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .black::after{
+            display: inline-block;
+            position: absolute;
+            top:0;
+            left:0;
+            content:" ";
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: black;
+            border: solid 1px #000;
+        }
+        .white::after{
+            display: inline-block;
+            position: absolute;
+            top:0;
+            left:0;
+            content:" ";
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: white;
+            border: solid 1px #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="chess-board"></div>
+
+    <script>
+
+        const COLOR_BLACK=1;
+        const COLOR_WHITE=2;
+        const STATE={
+            COLOR_BLACK:1,
+            COLOR_WHITE:2,
+            BLACK_WIN:3,
+            WHITE_WIN:4,
+            DRAW:5,
+        }
+
+        class ChessGame{
+            constructor(root,row,col,color){
+                this.root = root;
+                this.row = row;
+                this.col = col;
+                this.nextColor = color; //下一个下子的颜色
+                this.setState(this.nextColor); //棋局状态初始化
+
+                //init chess board
+                this.data =new Array(this.row);
+                for(let i=0;i<this.row;i++){
+                    this.data[i] = new Array(this.col);
+                }
+                //init event handler
+                this.root.addEventListener("click",({target})=>this.userPut(parseInt(target.getAttribute("row")),parseInt(target.getAttribute("col"))))
+            }
+            setState(state){
+                this.state = state;
+                this.root.setAttribute("status",state);
+            }
+            cooyData(){
+                return JSON.parse(JSON.stringify(this.data));
+            }
+            //人落子
+            userPut(rowPut,colPut){
+                //判断游戏状态,已结束游戏无法继续点击
+                if(this.state>2)
+                    return;
+
+                let posColor = this.data[rowPut][colPut];
+                this.data[rowPut][colPut] = this.nextColor; //落子
+                //判断胜负
+                if(this.checkWin(this.data,this.nextColor,rowPut,colPut)){
+                    this.setState(this.nextColor+2);//设置对应棋子获胜状态
+                }
+                this.draw();
+
+                if(this.state<=2){
+                    this.nextColor = 3-this.nextColor;//切换颜色
+                    this.setState(this.nextColor); 
+                }
+            }
+            //机器落子
+            robotPut(){
+               
+            }
+            //判断胜负
+            checkWin(data,nextColor,rowPut,colPut){
+                let isWin = false;
+
+                //工具函数，给定起始位置(不包含),和搜索方向步进函数，搜索出连续的棋子个数
+                function searchContinueCount(fromRow,fromCol,stepFunc,color){
+                    let searchCount = 0; //已经搜索的个数
+                    let continueCount = 0; //已经搜到连续的个数 (在这个函数中最多找4个就足够)
+                    let nextRow=0;
+                    let nextCol=0;
+                    //搜索
+                    for(;nextRow<data.length-1 && nextCol<data[0].length-1 && continueCount<4;searchCount++){
+                        //获取下一个位置
+                        [nextRow,nextCol]=stepFunc(fromRow,fromCol,searchCount);
+                        //如果下一个是同色
+                        if(data[nextRow][nextCol] === color)
+                            continueCount++;
+                        else
+                            //空处，或者不同色，搜索结束
+                            break;
+                        
+                    }
+                    return continueCount;
+                }
+                //在落子处附近，有无连续的横向5子
+                {
+                    //先看左侧
+                    let count1 = searchContinueCount(rowPut,colPut,(row,col,count)=>[row,col-count-1],nextColor);
+                    //再看右侧
+                    let count2 = searchContinueCount(rowPut,colPut,(row,col,count)=>[row,col+count+1],nextColor);
+                    //如果总共找到5个连续的，成功胜利
+                    if(count1+count2 >= 4)
+                        return true;
+                }
+
+                //在落子处附近，有无连续的纵向5子
+                {
+                    //先看上侧
+                    let count1 = searchContinueCount(rowPut,colPut,(row,col,count)=>[row-count-1,col],nextColor);
+                    //再看右侧
+                    let count2 = searchContinueCount(rowPut,colPut,(row,col,count)=>[row+count+1,col],nextColor);
+                    //如果总共找到5个连续的，成功胜利
+                    if(count1+count2 >= 4)
+                        return true;
+                }
+
+                //在落子处附近，有无左上-右下连续5子
+                {
+                    //先看左上侧
+                    let count1 = searchContinueCount(rowPut,colPut,(row,col,count)=>[row-count-1,col-count-1,],nextColor);
+                    //再看右下侧
+                    let count2 = searchContinueCount(rowPut,colPut,(row,col,count)=>[row+count+1,col+count+1],nextColor);
+                    //如果总共找到5个连续的，成功胜利
+                    if(count1+count2 >= 4)
+                        return true;
+                }
+                //在落子处附近，有无左下-右上连续5子
+                {
+                    //先看左下侧
+                    let count1 = searchContinueCount(rowPut,colPut,(row,col,count)=>[row+count+1,col-count-1,],nextColor);
+                    //再看右上侧
+                    let count2 = searchContinueCount(rowPut,colPut,(row,col,count)=>[row-count-1,col+count+1],nextColor);
+                    //如果总共找到5个连续的，成功胜利
+                    if(count1+count2 >= 4)
+                        return true;
+                }
+
+                return isWin;
+            }
+            //绘制
+            draw(){
+                //clear
+                this.root.innerHTML ="";
+
+                //draw
+                for(let i=0;i<this.row;i++){
+                    //draw a line
+                    for(let j=0;j<this.col;j++){
+                        let cellDOM = document.createElement("div");
+                        cellDOM.classList.add("cell");
+                        cellDOM.setAttribute("row",i);
+                        cellDOM.setAttribute("col",j);
+
+                        switch(this.data[i][j]){
+                            case COLOR_BLACK:
+                                cellDOM.classList.add("black");
+                                break;
+                            case COLOR_WHITE:
+                                cellDOM.classList.add("white");
+                                break;
+                            default:
+                                cellDOM.classList.add("empty");
+                                break;
+                        }
+
+                        this.root.appendChild(cellDOM);   
+                    }
+                    //change line
+                    this.root.appendChild(document.createElement("br"));
+                }
+            }
+        }
+
+        let root = document.getElementById("chess-board");
+        let game = new ChessGame(root,15,15,COLOR_BLACK);
+        game.draw();
+
+    </script>
+</body>
+</html>
