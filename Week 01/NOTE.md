@@ -75,3 +75,5 @@
 
 
 [`已完成,点我`](./five-chess)
+
+> 五子棋AI相关逻辑，因为时间问题暂时没有实现，找了一个不错的资料，以后有时间可以实现一下:[点这里](https://github.com/lihongxun945/gobang)
