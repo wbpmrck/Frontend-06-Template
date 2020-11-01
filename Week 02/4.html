@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>广度优先搜索-增可视化</title>
+  <title>广度优先搜索-增加路径记录</title>
 
   <style>
     .cell {
@@ -74,7 +74,8 @@
     });
 
     //寻路算法
-    async function path(map,start,end){
+    async function findPath(map,start,end){
+      let table = Object.create(map); //复制一个table,table里每一个位置存的都是这个位置的上一个位置坐标
       let queue = [start];
       
       async function insert(x,y,pre){
@@ -83,23 +84,31 @@
         }
         if(map[y*100+x]) //如果有障碍物或者搜寻过，则直接返回
           return;
-        await sleep(30);
+        // await sleep(1);
         container.children[y*100+x].style.backgroundColor = "lightgreen";
         map[y*100+x] = 2;//标记已经搜索过
+        table[y*100+x] = pre;//记录他的上一个节点来源
         queue.push([x,y]); //加入路径集合
       }
 
       while(queue.length){
         let [x,y] = queue.shift();
         if(x === end[0] && y === end[1]){
-            return true;
+          let path =[]; //返回最终的路径
+          while(x != start[0] || y!= start[1]){
+            path.push(map[y * 100 + x]);
+            [x,y] = table[y*100 +x]
+            await sleep(30);
+            container.children[y*100+x].style.backgroundColor = "purple"; //画出路径
+          }
+          return path;
         }
-        await insert(x-1,y);//上
-        await insert(x,y-1);//左
-        await insert(x+1,y);//下
-        await insert(x,y+1);//右
+        await insert(x-1,y,[x,y]);//上
+        await insert(x,y-1,[x,y]);//左
+        await insert(x+1,y,[x,y]);//下
+        await insert(x,y+1,[x,y]);//右
       }
-      return false;
+      return null;
     }
   </script>
 </body>
