@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>广度优先搜索-增加路径记录</title>
+  <title>启发式搜索</title>
 
   <style>
     .cell {
@@ -26,6 +26,41 @@
   <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
   
   <script>
+    class Sorted {
+      /**
+       * 
+       * @date 2020-11-02
+       * @param {any} data
+       * @param {Function} compare:用于比较元素的比较函数
+       * @returns {any}
+       */
+      constructor(data,compare){
+        this.data = data.slice();
+        this.compare = compare || ( (a,b)=> a-b);
+      }
+      
+      take(){
+        if(!this.data.length)
+          return;
+        let min = this.data[0];
+        let minIndex = 0;
+        for (let i = 1; i < this.data.length; i++) {
+          if(this.compare(this.data[i],min) < 0){
+            min = this.data[i]; //找到最小
+            minIndex = i;
+          }
+          this.data[minIndex] = this.data[this.data.length-1];//已经找到最小的了，那么就把尾部的元素放到最小元素上覆盖掉
+          this.data.pop();//然后把尾部元素移除
+          return min; //返回保存的最小值副本
+          
+        }
+      }
+      give(v){
+        this.data.push(v);
+      }
+      }
+
+    }
 
     let sleep = (ms)=>{return new Promise((resolve,reject)=>{setTimeout(resolve,ms)})};
 

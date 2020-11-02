@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>广度优先搜索-增加路径记录</title>
+  <title>启发式搜索实现集成</title>
 
   <style>
     .cell {
@@ -26,6 +26,38 @@
   <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
   
   <script>
+    class Sorted {
+      /**
+       * 
+       * @date 2020-11-02
+       * @param {any} data
+       * @param {Function} compare:用于比较元素的比较函数
+       * @returns {any}
+       */
+      constructor(data,compare){
+        this.data = data.slice();
+        this.compare = compare || ( (a,b)=> a-b);
+      }
+      
+      take(){
+        if(!this.data.length)
+          return;
+        let min = this.data[0];
+        let minIndex = 0;
+        for (let i = 1; i < this.data.length; i++) {
+          if(this.compare(this.data[i],min) < 0){
+            min = this.data[i]; //找到最小
+            minIndex = i;
+          }
+        }
+        this.data[minIndex] = this.data[this.data.length-1];//已经找到最小的了，那么就把尾部的元素放到最小元素上覆盖掉
+        this.data.pop();//然后把尾部元素移除
+        return min; //返回保存的最小值副本
+      }
+      give(v){
+        this.data.push(v);
+      }
+    }
 
     let sleep = (ms)=>{return new Promise((resolve,reject)=>{setTimeout(resolve,ms)})};
 
@@ -76,7 +108,20 @@
     //寻路算法
     async function findPath(map,start,end){
       let table = Object.create(map); //复制一个table,table里每一个位置存的都是这个位置的上一个位置坐标
-      let queue = [start];
+      let queue = new Sorted([start],(a,b)=> distance(a) - distance(b));
+
+      container.children[end[1]*100+end[0]].style.backgroundColor = "red"; //画出终点
+      
+
+      /**
+       * 计算给定point到重点的距离大小
+       * @date 2020-11-02
+       * @param {any} point
+       * @returns {any}
+       */
+      function distance(point){
+        return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2 //这里不需要开根号，是因为compare函数是比较大小，不开不影响比较，节省计算资源
+      }
       
       async function insert(x,y,pre){
         if(x < 0 || x >=100 || y < 0 || y >= 100){
@@ -84,16 +129,18 @@
         }
         if(map[y*100+x]) //如果有障碍物或者搜寻过，则直接返回
           return;
-        // await sleep(1); //去掉sleep,则查找过程会瞬间完成
+        await sleep(10); //去掉sleep,则查找过程会瞬间完成
         container.children[y*100+x].style.backgroundColor = "lightgreen";
         map[y*100+x] = 2;//标记已经搜索过
         table[y*100+x] = pre;//记录他的上一个节点来源
-        queue.push([x,y]); //加入路径集合
+        queue.give([x,y]); //加入路径集合
       }
 
-      while(queue.length){
-        let [x,y] = queue.shift();
+      while(queue.data.length){
+        let [x,y] = queue.take();
         if(x === end[0] && y === end[1]){
+
+          container.children[y*100+x].style.backgroundColor = "red"; //画出终点(刚才会被查找过程的绿色覆盖)
           let path =[]; //返回最终的路径
           while(x != start[0] || y!= start[1]){
             path.push(map[y * 100 + x]);
