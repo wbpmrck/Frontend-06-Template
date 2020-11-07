@@ -1,0 +1,276 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>启发式搜索实现集成-二叉堆</title>
+
+  <style>
+    .cell {
+      display: inline-block;
+      line-height: 7px;
+      width: 6px;
+      height: 6px;
+      background-color: gray;
+      border-bottom: solid 1px white;
+      border-right: solid 1px white;
+      vertical-align: middle;
+    }
+
+    #container {
+      width: 701px;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
+  <button onclick="localStorage.removeItem('map') || window.location.reload()">clear</button>
+  <button onclick="findPath(map,[parseInt(document.getElementById('startX').value),parseInt(document.getElementById('startY').value)],[parseInt(document.getElementById('endX').value),parseInt(document.getElementById('endY').value)]).then(r=>alert('path length:'+r.length))">begin search</button>
+
+  <div class="region">
+    <div class="title">起始点:</div>
+    x:<input type="number" id="startX" value="0">
+    y:<input type="number" id="startY" value="0">
+  </div>
+    
+  <div class="region">
+    <div class="title">终点:</div>
+    x:<input type="number" id="endX" value="50">
+    y:<input type="number" id="endY" value="50">
+  </div>
+    
+  
+  <script>
+
+    /*
+      二叉堆，这里构建一个小根堆：任意节点到终点的评估值，不大于其子节点
+      1、二叉堆定义是一个完全二叉树，我们这里使用数组来存储
+      2、每次插入数据，都先插入数组尾部，然后再和他的父节点进行比较，如果优先级高于父亲，则进行交换
+      3、每次拿出数据，都是拿堆顶元素，然后把尾部元素替换到堆顶，然后继续下沉到合适的位置，使得小顶堆仍然符合其定义
+    */
+    class BinaryHeap {
+      /**
+       * 描述
+       * @date 2020-11-07
+       * @param {any} data
+       * @param {any} compare:用于比较元素的比较函数
+       * @returns {any}
+       */
+      constructor(data,compare){
+        this.data = data.slice();
+        this.compare = compare || ( (a,b)=> a-b);
+      }
+      /**
+       * 根据传入的节点index，找到其在二叉堆中父节点的index
+       * @date 2020-11-07
+       * @param {any} index
+       * @returns {any}
+       */
+      getParentIndex(index){
+        return Math.floor((index-1)/2);
+      }
+
+      getLeftChildIndex(index){
+        return index*2+1;
+      }
+      getRightChildIndex(index){
+        return index*2+2;
+      }
+      swap(i,j){
+        let tmp = this.data[i];
+        this.data[i] = this.data[j];
+        this.data[j] = tmp;
+      }
+
+      take(){
+        if(!this.data.length)
+          return;
+        //因为是小顶堆，所以最上面的就是我们要找的下一个扩展的节点
+        let min = this.data[0]; 
+        
+        if(this.length>1){
+          //将尾部节点放到堆顶
+          this.data[0] = this.data[this.length-1];
+        }
+        //弹出原来的尾部元素(已经无用)
+        this.data.pop();
+
+        let i =0;
+        //开始将刚才尾部插入堆顶的元素下沉到合适的叶子节点
+        while(i < this.length){
+          let leftChildIndex = this.getLeftChildIndex(i);
+          let rightChildIndex = this.getRightChildIndex(i);
+
+          //没有左孩子，结束
+          if(leftChildIndex >= this.length)
+            break;
+          //没有右孩子，则和左孩子交换
+          if(rightChildIndex >= this.length){
+            this.swap(leftChildIndex,i);
+            i = leftChildIndex;
+          }else{
+            //两个孩子都有，则和孩子中较小的那个交换
+            if(this.compare(this.data[leftChildIndex],this.data[rightChildIndex]) < 0){
+              this.swap(leftChildIndex,i);
+              i = leftChildIndex;
+            }else{
+              this.swap(rightChildIndex,i);
+              i = rightChildIndex;
+            }
+          }
+        }
+        return min; //返回保存的最小值副本
+      }
+      give(v){
+        //先入尾部
+        this.data.push(v);
+        //和父亲进行比较
+        let i = this.length -1;
+        while(i > 0){
+          if(this.compare(this.data[i],this.data[this.getParentIndex(i)]) < 0){
+            //交换该节点和他的父亲
+            this.swap(i,this.getParentIndex(i));
+            //指针上移
+            i = this.getParentIndex(i);
+          }else{
+            break;
+          }
+        }
+      }
+      get length(){
+        return this.data.length;
+      }
+    }
+
+    let sleep = (ms)=>{return new Promise((resolve,reject)=>{setTimeout(resolve,ms)})};
+
+    //地图：0代表空 1代表障碍物 2代表搜索过的点
+    let map = localStorage["map"] ? JSON.parse(localStorage["map"]):Array(10000).fill(0);
+
+    let container = document.getElementById("container");
+    let mousedown = false;
+    let clear = false;
+    //构建一个100X100的地图编辑器
+    for(let y=0;y<100;y++){
+        for(let x=0;x<100;x++){
+            let cell = document.createElement("div");
+            cell.classList.add("cell");
+            cell.setAttribute("x",x);
+            cell.setAttribute("y",y);
+
+            //障碍物
+            if(map[100*y+x] == 1)
+              cell.style.backgroundColor = "black"
+            
+            cell.addEventListener("mousemove",()=>{
+              //支持拖动操作
+              if(mousedown){
+                //如果是清空操作
+                if(clear){
+                  cell.style.backgroundColor = "";
+                  map[100*y+x] = 0;
+                }else{
+                  cell.style.backgroundColor = "black";
+                  map[100*y+x] =1;
+                }
+              }
+            })
+            container.appendChild(cell);
+        }
+    }
+
+    document.addEventListener("mousedown",e=>{
+      mousedown = true;
+      clear = (e.which === 3)
+      console.log(`${e.target.getAttribute("x")},${e.target.getAttribute("y")}`)
+    });
+    document.addEventListener("mouseup",e=>{
+      mousedown = false;
+    });
+    document.addEventListener("contextmenu",e=>{
+      e.preventDefault;
+    });
+
+    //寻路算法
+    async function findPath(map,start,end){
+      let table = Object.create(map); //复制一个table,table里每一个位置存的都是这个位置的上一个位置坐标
+      let queue = new BinaryHeap([start],(a,b)=> totalCost(a) - totalCost(b));
+      let costCountTable = []; //table里每一个位置存的都是对应节点的cost
+
+      container.children[end[1]*100+end[0]].style.backgroundColor = "red"; //画出终点
+      
+
+      /**
+       * g(n)表示从初始结点到任意结点n的代价
+       * h(n)表示从结点n到目标点的启发式评估代价
+       */
+      function h(point){
+        return Math.sqrt((point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2,2) //这里需要开根号，因为计算
+      }
+      function g(point){
+        let cost = costCountTable[point[1]*100+point[0]];
+        return cost === undefined?0:cost;
+      }
+      function totalCost(point){
+        return g(point) + h(point);
+      }
+      
+      async function insert(x,y,pre,stepCost){
+
+        if(x < 0 || x >=100 || y < 0 || y >= 100){
+          return;
+        }
+        //如果障碍物，则无法扩展
+        if(map[y*100+x] === 1)
+          return;
+        //如果是搜寻过的节点，则比较之的前驱和当前前驱哪个更合适作为前驱
+        if(map[y*100+x] === 2) {
+          if(g([x,y]) > g(pre)+stepCost){
+            table[y*100+x] = pre;//更新他的上一个节点来源
+            costCountTable[y*100+x] = g(pre)+ stepCost; //更新当前节点到原点的cost
+          }
+          return;
+        }
+        // await sleep(10); //去掉sleep,则查找过程会瞬间完成
+        container.children[y*100+x].style.backgroundColor = "lightgreen";
+        map[y*100+x] = 2;//标记已经搜索过
+        table[y*100+x] = pre;//记录他的上一个节点来源
+
+        costCountTable[y*100+x] = g(pre) + stepCost;
+        queue.give([x,y]); //加入路径集合
+      }
+
+      while(queue.data.length){
+        let [x,y] = queue.take();
+        container.children[y*100+x].style.backgroundColor = "pink"; //粉色代表实际遍历到的节点
+        if(x === end[0] && y === end[1]){
+
+          container.children[y*100+x].style.backgroundColor = "red"; //画出终点(刚才会被查找过程的绿色覆盖)
+          let path =[]; //返回最终的路径
+          while(x != start[0] || y!= start[1]){
+            path.push(map[y * 100 + x]);
+            console.log(`打印路径:[${x},${y}]`);
+            [x,y] = table[y*100 +x]
+            await sleep(100);
+            container.children[y*100+x].style.backgroundColor = "purple"; //画出路径
+            console.log(`打印前驱:[${x},${y}]`);
+            console.log(`---------------`);
+          }
+          return path;
+        }
+        await insert(x,y-1,[x,y],1);//左
+        await insert(x,y+1,[x,y],1);//右
+        await insert(x-1,y,[x,y],1);//上
+        await insert(x+1,y,[x,y],1);//下
+
+        //斜向设置更多的cost,让评估函数更倾向于使用直线
+        await insert(x-1,y-1,[x,y],1.5);//左上
+        await insert(x+1,y-1,[x,y],1.5);//右上
+        await insert(x+1,y+1,[x,y],1.5);//右下
+        await insert(x-1,y+1,[x,y],1.5);//左下
+      }
+      return null;
+    }
+  </script>
+</body>
+</html>

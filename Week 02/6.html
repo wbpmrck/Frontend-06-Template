@@ -154,6 +154,11 @@
         await insert(x,y-1,[x,y]);//左
         await insert(x+1,y,[x,y]);//下
         await insert(x,y+1,[x,y]);//右
+
+        await insert(x-1,y-1,[x,y]);//左上
+        await insert(x+1,y-1,[x,y]);//右上
+        await insert(x+1,y+1,[x,y]);//右下
+        await insert(x-1,y+1,[x,y]);//左下
       }
       return null;
     }
