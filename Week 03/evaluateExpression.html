@@ -2,10 +2,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LL-AST</title>
+  <title>练习使用课堂上学的词法分析、语法分析来进行四则运算</title>
 </head>
 <body>
+
+  <div id="title">请在下面输入要进行的四则运算</div>
+  <input type="text" id="text" value="1 + 2 * 3 - 4">
+  <span>=</span>
+  <span id="result">?</span>
+
+  <button onclick="javascript:calculateClick();">计算</button>
+
   <script>
+
+/*-------------------------------------------
+  以下是本demo新增代码，用于针对解析后的语法树进行表达式计算
+---------------------------------------------*/
+
+//调用词法分析、语法分析、以及表达式执行器进行四则运算
+function calculateClick(){
+  document.getElementById("result").innerText = calculate(document.getElementById("text").value);
+}
+
+function calculate(sourceText){
+  let result = null;//定义返回变量
+
+
+  let source = [];
+    for(let token of tokenize(sourceText)){
+      if(token.type !== "Whitespace" && token.type !== "LineTerminator")
+        source.push(token);
+    }
+    
+
+  //进行词法、语法分析
+  let expression = Expression(source);
+  console.log(expression);
+
+  //进行表达式求值
+  result = evaluateExpression(expression);
+
+  return result;
+}
+
+/**
+ * 进行表达式求值
+ * @date 2020-11-15
+ * @param {any} expression
+ * @returns {any}
+ */
+function evaluateExpression(expression){
+  switch(expression.type){
+    case "Expression":
+      return evaluateExpression(expression.children[0]); //真实环境里的表达式很复杂，但是如果仅仅考虑四则运算表达式，则只需要计算第一个children即可。
+    case "Number":
+      return parseFloat(expression.value,10);
+    case "AdditiveExpression":
+      //加法表达式，可能有3个children,中间一个是计算符号；也可能是一个children,就是一个乘法表达式
+      if(expression.children.length === 3){
+        let leftOperand = evaluateExpression(expression.children[0]); //计算左操作数
+        let rightOperand = evaluateExpression(expression.children[2]); //计算右操作数
+        return expression.children[1].type === "+" ? leftOperand + rightOperand : leftOperand - rightOperand; //根据操作符决定运算逻辑并且返回
+      }else if(expression.children.length === 1){
+        if(expression.children[0].type === "MultiplicativeExpression")
+          return evaluateExpression(expression.children[0]);
+        else {
+          throw new Error("加法表达式格式错误，无法计算");
+          return null;
+        }
+      }else{
+        throw new Error("加法表达式格式错误，无法计算");
+        return null;
+      }
+    case "MultiplicativeExpression":
+      //乘法表达式，可能有3个children,中间一个是计算符号；也可能是一个children,就是一个Number
+      if(expression.children.length === 3){
+        let leftOperand = evaluateExpression(expression.children[0]); //计算左操作数
+        let rightOperand = evaluateExpression(expression.children[2]); //计算右操作数
+        return expression.children[1].type === "*" ? leftOperand * rightOperand : leftOperand / rightOperand; //根据操作符决定运算逻辑并且返回
+      }else if(expression.children.length === 1){
+        if(expression.children[0].type === "Number")
+          return evaluateExpression(expression.children[0]);
+        else {
+          throw new Error("乘法表达式格式错误，无法计算");
+          return null;
+        }
+      }else{
+        throw new Error("加法表达式解析失败，无法计算");
+        return null;
+      }
+  }
+}
+
+
+
+
+
+/*-------------------------------------------
+  以下是老师课堂上的代码，用于进行词法分析，语法分析
+---------------------------------------------*/
 
 var regexp = /([0-9\.]+)|([ \t\n\r]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
 
@@ -42,11 +137,6 @@ var regexp = /([0-9\.]+)|([ \t\n\r]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
       }
     }
 
-    let source = [];
-    for(let token of tokenize("1 + 2 + 3")){
-      if(token.type !== "Whitespace" && token.type !== "LineTerminator")
-        source.push(token);
-    }
 
     function Expression(source){
       if(source[0].type === "AdditiveExpression" && source[1] && source[1].type === "EOF"){
@@ -146,7 +236,6 @@ var regexp = /([0-9\.]+)|([ \t\n\r]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
       return MultiplicativeExpression(source); // 这一句应该永远不会执行，只是为了保证完备性
     }
 
-    console.log(Expression(source));
   </script>
 </body>
 </html>

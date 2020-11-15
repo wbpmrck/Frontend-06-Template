@@ -25,3 +25,5 @@ var dictionary = ["Number","Whitespace","LineTerminator","*","/","+","-"];
 ### 01-完成课程页面底下练习，提交至课程页面
 
 `已完成`
+
+> 顺手实现了一个根据表达式进行求值的demo,[点击这里](./evaluateExpression.html)
