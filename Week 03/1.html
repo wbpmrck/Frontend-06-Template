@@ -1,0 +1,30 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LL-AST</title>
+</head>
+<body>
+  <script>
+
+    var regexp = /([0-9\.]+)|([ \t\n\r]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+
+    var dictionary = ["Number","Whitespace","LineTerminator","*","/","+","-"];
+
+    function tokenize(source){
+      var result = null;
+      while(true){ 
+        result = regexp.exec(source);
+        if(!result) break;
+        console.log(result);
+        for(var i = 1; i <= dictionary.length; i++){
+          if(result[i])
+            console.log(dictionary[i-1]);
+        }
+      }
+    }
+
+    tokenize("1024 + 10 * 25")
+  </script>
+</body>
+</html>
