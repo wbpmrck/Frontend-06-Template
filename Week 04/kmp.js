@@ -43,3 +43,5 @@ function kmp(source,pattern){
 }
 
 console.log(kmp("abc","abc"));
+console.log(kmp("abcdabceaac","abce"));
+console.log(kmp("aabaadaaac","aaac"));

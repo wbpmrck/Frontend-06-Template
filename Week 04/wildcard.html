@@ -1,0 +1,75 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>wildcard</title>
+</head>
+<body>
+  <script>
+
+    function find(source,pattern){
+      let startCount = 0; //保存一共有几个星号
+      for(let i = 0; i < pattern.length; i++){
+        if(pattern[i] === "*")
+          startCount++;
+      }
+
+      //没有星号的情况
+      if(startCount === 0){
+        for(let i = 0;i < pattern.length; i++){
+          if(pattern[i] !== source[i] && pattern[i] !== "?")
+            return false;
+        }
+        return;
+      }
+
+      let i = 0; //pattern 的位置
+      let lastIndex = 0; // source 的位置
+
+      //匹配第一个星号之前的
+      for(i = 0; pattern[i] !== "*"; i++){
+        if(pattern[i] !== source[i] && pattern[i] !== "?")
+          return false;
+      }
+
+      lastIndex = i;
+
+      //处理中间的段(非最后1个*号)
+      for(let p = 0;p < startCount - 1; p++){
+        i++;
+        let subPattern = "";
+        while(pattern[i] !== "*"){
+          subPattern += pattern[i];
+          i++;
+        }
+
+        let reg = new RegExp(subPattern.replace(/\?/g,"[\\s\\S]"),"g");
+        reg.lastIndex = lastIndex; //让正则表达式从我们当已经找到的位置开始，而不是重头开始，非常重要
+
+        // console.log(reg.exec(source));
+        //如果没有找到匹配的中间段，则返回不存在
+        if(!reg.exec(source)){
+          return false;
+        }
+
+        lastIndex = reg.lastIndex;
+      }
+
+      //处理最后一个星号
+      for(let j = 0;j <= source.length - lastIndex && pattern[pattern.length - j] !== "*";j++){
+        if(pattern[pattern.length - j] !== source[source.length - j]
+        && pattern[pattern.length - j] !== "?"){
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+
+    // find("abcabcabxaac","a*b*bx*c");
+    find("abcabcabxaac","a*b?*b?x*c");
+
+  </script>
+</body>
+</html>
