@@ -1,0 +1,23 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proxy-1</title>
+</head>
+<body>
+  <script>
+    let object =  {
+      a:1,
+      b:2,
+    };
+    let po = new Proxy(object,{
+      set(obj,prop,val){
+        console.log(obj,prop,val);//在这里只打印，所以实际并不会对原来的对象进行修改
+      }
+    });
+
+    po.a=12; //改变已有属性
+    po.c=1; //添加不存在的属性
+  </script>
+</body>
+</html>
