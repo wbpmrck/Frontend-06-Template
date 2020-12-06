@@ -1,0 +1,44 @@
+<html lang="en">
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>UTF-8编码</title>
+</head>
+<body>
+
+     <script>
+
+          /**
+           * 对字符串进行UTF8编码
+           * @date 2020-12-06
+           * @param {any} str:输入的字符串
+           * @returns {any}
+           */
+          function UTF8_Encoding(str) {
+               var bytes = [];
+               for (var i = 0; i < str.length; i++) {
+                    var code = str.charCodeAt(i);
+                    if (0x00 <= code && code <= 0x7f) {
+                         bytes.push(code);
+                    } else if (0x80 <= code && code <= 0x7ff) {
+                         bytes.push((192 | (31 & (code >> 6))));
+                         bytes.push((128 | (63 & code)))
+                    } else if ((0x800 <= code && code <= 0xd7ff) 
+                         || (0xe000 <= code && code <= 0xffff)) {
+                         bytes.push((224 | (15 & (code >> 12))));
+                         bytes.push((128 | (63 & (code >> 6))));
+                         bytes.push((128 | (63 & code)))
+                    }
+               }
+               for (i = 0; i < bytes.length; i++) {
+                    bytes[i] &= 0xff;
+               }
+               return bytes
+          }
+
+          console.log(UTF8_Encoding("中"));
+
+     </script>
+     
+</body>
+</html>

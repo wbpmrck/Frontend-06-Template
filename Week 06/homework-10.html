@@ -1,0 +1,104 @@
+<html lang="en">
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>狗咬人的设计</title>
+</head>
+<body>
+
+     <script>
+
+          /*
+               首先，狗咬人这个设计，我们需要考虑的是几个方面：
+               1、这个动作是哪个对象发起
+               2、这个行为，改变了哪些对象的内部状态
+               3、我们不应该让狗和人之间，发生直接的依赖
+          */
+
+
+          //动物基类，定义了通用方法
+          class Animal {
+               constructor(name,hp){
+                    this.name = name;
+                    this.hp = hp;
+               }
+               hurtBy(animal,damage){
+                    console.log(`${this.name} hurt by ${animal.name},lost ${damage}hp!`);
+                    this.hp -= damage;
+               }
+               toString(){
+                    return `${this.name} has ${this.hp}hp left`;
+               }
+               //动物对靠近的另外一个动物发生发应，不同动物的反应不一样
+               react(animal,distance){
+                    throw new Error('need implement!')
+               }
+               /**
+                * 走近另外一个动物，触发动物的反应
+                * @date 2020-12-06
+                * @param {any} animal
+                * @param {any} distance
+                * @returns {any}
+                */
+                walkTo(animal,distance){
+                    console.log(`${this.name} walk to ${animal.name} at ${distance}m!`);
+                    animal.react(this,distance);
+               }
+          }
+
+          //人类也是动物，有自己对靠近动物做出的反应
+          class Human extends Animal{
+               constructor(name,hp){
+                    super(name,hp);
+               }
+               /**
+                * 人类对靠近的动物的反应:表示友好
+                */
+                react(animal,distance){
+                    console.log(`${this.name} said to ${animal.name}: Hello!`);
+               }
+          }
+
+          //狗也是动物，有自己对靠近动物做出的反应
+          class Dog extends Animal{
+               constructor(name,hp,damage){
+                    super(name,hp);
+                    this.damage = damage;
+               }
+               /**
+                * 狗对靠近的动物的反应:如果太近，就咬一口
+                */
+                react(animal,distance){
+                     if(distance < 1){
+                         this.bite(animal)
+                     }else{
+                         console.log(`${this.name} said to ${animal.name}: Do not get closer!`);
+                     }
+                    
+               }
+
+               /**
+                * 狗拥有咬的方法，可以对动物造成伤害，而伤害的多少取决于狗的品种和力量
+                * @date 2020-12-06
+                * @param {any} animal
+                * @returns {any}
+                */
+               bite(animal){
+                    console.log(`${this.name} bite ${animal.name}! Wof!Wof!`);
+                    animal.hurtBy(this,this.damage);
+               }
+          }
+
+          let sam = new Human("Sam",2000); //2000点血的 Sam
+          let bingo = new Dog("bingo",500,100);
+
+          console.log(sam.toString())
+          sam.walkTo(bingo,2); //sam 走到 bingo 的2米处，触发反应
+          sam.walkTo(bingo,0.5); //sam 走到 bingo 的0.5米处，触发被咬
+          console.log(sam.toString())
+
+          bingo.walkTo(sam,2); //狗靠近人类，就不会被人类咬
+     </script>
+     
+</body>
+</html>
