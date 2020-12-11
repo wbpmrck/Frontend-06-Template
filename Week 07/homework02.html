@@ -1,0 +1,155 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2.JS表达式-类型转换</title>
+</head>
+<body>
+
+  <script>  
+
+  /*
+    数字的4种进制表示：
+
+    十进制：
+    0
+    0.
+    .2
+    1e3
+
+    2进制：
+    0b1001
+
+    8进制
+    0o17
+
+    16进制
+    0xff22
+
+  */
+  
+
+  /**
+   * 字符串转化为数字
+   * @param {any} str :任何进制格式的字符串
+   * @returns {any}：返回10进制的Number
+   */
+  function stringToNumber(str){
+
+    let numMap = new Map(); //用于保存字符串对应的数值的字典
+    [0,1,2,3,4,5,6,7,8,9].forEach(e=>{
+      numMap.set(e.toString(),e);
+    });
+    ["a","b","c","d","e","f"].forEach(e=>{
+      numMap.set(e,e.charCodeAt(0)-"a".charCodeAt(0) + 10);
+    });
+
+    //辅助函数，用于把字符串每一位取出然后转为数值
+    function translate(str,scale){
+      let base = 1 ;
+      let total = 0;
+      for (let index = str.length-1; index >= 0; index--) {
+        let numStr = str[index];
+        num = numMap.get(numStr);
+
+        //检查合法性
+        if(num >= scale || num === undefined)
+          throw new Error(`Number:${numStr} is illegal for ${scale} scale`)
+
+        total += base * num;
+        base *= scale;
+      }
+      return total;
+    }
+
+    if(str[0] === '0' && str[1].toLowerCase() === 'b'){
+      //2进制
+      return translate(str.slice(2),2)
+    }else if(str[0] === '0' && str[1].toLowerCase() === 'o'){
+      //8进制
+      return translate(str.slice(2),8)
+    }else if(str[0] === '0' && str[1].toLowerCase() === 'x'){
+      //16进制
+      return translate(str.slice(2),16)
+    }else{
+      //默认10进制
+      return translate(str,10); 
+    }
+  }
+  
+  /**
+   * 数字转换为字符串
+
+      比如100转为2进制：
+
+      100 / 2 = 50    ---- 0
+      50 / 2 = 25    ---- 0
+      25 / 2 = 12    ---- 1
+      12 / 2 = 6    ---- 0
+      6 / 2 = 3    ---- 0
+      3 / 2 = 1    ---- 1
+      1 / 2 = 0    ---- 1
+
+      最后倒序输出余数序列即可
+
+
+      比如100转为16进制：
+
+      100 / 16 = 6    ---- 4
+      6 / 16 = 0    ---- 6
+
+      所以100 = 0x64
+
+
+   * @param {any} num：Number值或者Number类型对象
+   * @param {any} scale：要转化为什么进制的字符串表示
+   * @returns {any}
+   */
+  function numberToString(num,scale){
+
+    function translate(num,scale){
+
+      let consult = null,remainder = null; //商和余数
+      let result = [];
+
+      while(consult !== 0){
+        consult = Math.floor(num / scale);
+        remainder = num % scale;
+        result.unshift(remainder);
+        num = consult;
+      }
+      return result.join('');
+    }
+    
+    if(scale === 2){
+      return `0b${translate(num,scale)}`
+    }else if(scale === 8){
+      return `0o${translate(num,scale)}`
+
+    }else if(scale === 16){
+      return `0x${translate(num,scale)}`
+    }else if(scale === 10){
+      return num;
+    }else{
+      throw new Error(`scale:${scale} is not supported!`)
+    }
+  }
+  
+
+  
+  console.log(stringToNumber("100"));
+  console.log(stringToNumber("0x10"));
+  console.log(stringToNumber("0b1010"));
+  console.log(stringToNumber("0o0107"));
+  console.log(stringToNumber("1234"));
+  // console.log(stringToNumber("0b1234")); // throw error test 
+  
+  console.log(numberToString(100,2));
+  console.log(numberToString(100,8));
+  console.log(numberToString(100,16));
+  console.log(numberToString(100,10));
+  console.log(numberToString(100,11)); // throw error test
+  </script>
+  
+</body>
+</html>
