@@ -1,0 +1,195 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7.找出js里所有的Realm</title>
+  <style>
+    #container {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <!-- 引入 G6 -->
+  <script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.g6-3.7.1/dist/g6.min.js"></script>
+
+  <script>  
+
+    let g6Data = {
+      id:"JSRealms",
+      children:[
+        {
+          id:"内置值",
+          children:[
+            {id:"Infinity"},
+            {id:"Nan"},
+            {id:"undefined"},
+            {id:"this"},
+          ]
+        },
+        {
+          id:"内置函数",
+          children:[
+            {id:"eval"},
+            {id:"uneval"},
+            {id:"isFinite"},
+            {id:"isNan"},
+            {id:"parseInt"},
+            {id:"parseFloat"},
+            {id:"encodeURI"},
+            {id:"decodeURI"},
+            {id:"encodeURIComponent"},
+            {id:"decodeURIComponent"},
+          ]
+        },
+        {
+          id:"基础数据结构/类型",
+          children:[
+            {id:"Object"},
+            {id:"Boolean"},
+            {id:"String"},
+            {id:"Number"},
+            {id:"Symbol"},
+            {id:"Function"},
+            {id:"Array"},
+            {id:"Map"},
+            {id:"Set"},
+            {id:"WeekMap"},
+            {id:"WeekSet"},
+          ]
+        },
+        {
+          id:"错误处理",
+          children:[
+            {id:"Error"},
+            {id:"EvalError"},
+            {id:"AggregateError"},
+            {id:"InternalError"},
+            {id:"ReferenceError"},
+            {id:"SyntaxError"},
+            {id:"TypeError"},
+            {id:"URIError"},
+          ]
+        },
+        {
+          id:"二进制内存操作",
+          children:[
+            {id:"ArrayBuffer"},
+            {id:"Int8Array"},
+            {id:"UInt8Array"},
+            {id:"Int16Array"},
+            {id:"UInt16Array"},
+            {id:"Int32Array"},
+            {id:"UInt32Array"},
+            {id:"Float32Array"},
+            {id:"Float64Array"},
+            {id:"DataView"},
+          ]
+        },
+        {
+          id:"控制流",
+          children:[
+            {id:"Promise"},
+          ]
+        },
+        {
+          id:"其他内置类型",
+          children:[
+            {id:"Date"},
+            {id:"JSON"},
+          ]
+        },
+      ]
+    }
+
+
+
+        const container = document.getElementById('container');
+        const width = container.scrollWidth;
+        const height = container.scrollHeight || 500;
+        const graph = new G6.TreeGraph({
+          container: 'container',
+          width,
+          height,
+          modes: {
+            default: [
+              {
+                type: 'collapse-expand',
+                onChange: function onChange(item, collapsed) {
+                  const data = item.get('model').data;
+                  data.collapsed = collapsed;
+                  return true;
+                },
+              },
+              'drag-canvas',
+              'zoom-canvas',
+            ],
+          },
+          defaultNode: {
+            size: 26,
+            anchorPoints: [
+              [0, 0.5],
+              [1, 0.5],
+            ],
+          },
+          defaultEdge: {
+            type: 'cubic-horizontal',
+          },
+          layout: {
+            type: 'mindmap',
+            direction: 'H',
+            getHeight: () => {
+              return 16;
+            },
+            getWidth: () => {
+              return 16;
+            },
+            getVGap: () => {
+              return 10;
+            },
+            getHGap: () => {
+              return 100;
+            },
+            getSide: () => {
+              return 'right';
+            },
+          },
+        });
+
+        let centerX = 0;
+        graph.node(function (node) {
+          if (node.id === 'Modeling Methods') {
+            centerX = node.x;
+          }
+
+          return {
+            label: node.id,
+            labelCfg: {
+              position:
+                node.children && node.children.length > 0
+                  ? 'right'
+                  : node.x > centerX
+                    ? 'right'
+                    : 'left',
+              offset: 5,
+            },
+          };
+        });
+
+        graph.data(g6Data);
+        graph.render();
+        graph.fitView();
+
+        if (typeof window !== 'undefined')
+          window.onresize = () => {
+            if (!graph || graph.get('destroyed')) return;
+            if (!container || !container.scrollWidth || !container.scrollHeight) return;
+            graph.changeSize(container.scrollWidth, container.scrollHeight);
+          };
+
+  </script>
+  
+</body>
+</html>
