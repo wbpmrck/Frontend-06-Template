@@ -8,66 +8,41 @@
 
   <script>
 
-    //TODO:使用状态机实现KMP算法
+    function match(source,pattern){
+      let m = pattern.length,
+        n = source.length,
+        i = 0,
+        j = 0,
+        dfa = KMP(pattern);
 
-    function start(c){
-      if(c === "a")
-        return foundA;
-      else 
-        return start
-    }
-
-    function foundA(c){
-      if(c === "b")
-        return foundB;
-      else 
-        return start(c)
-    }
-    function foundB(c){
-      if(c === "c")
-        return foundC;
-      else 
-        return start(c)
-    }
-    function foundC(c){
-      if(c === "a")
-        return foundA2;
-      else 
-        return start(c)
-    }
-    function foundA2(c){
-      if(c === "b")
-        return foundB2;
-      else 
-        return start(c)
-    }
-    function foundB2(c){
-      if(c === "x")
-        return end;
-      else if(c === "c") //如果是c,则满足前半部分
-        return foundC
-      else 
-        return start(c)
-    }
-    function end(c){
-      return true
+      for (; i < n && j < m; i++) j = dfa[j][source.charCodeAt(i)];
+      if (j === m) return true
+      return false;
     }
 
-    function find(str){
-      let state = start;
-      for(let c of str){
-        state = state(c);
-        if(state === true)
-          break;
+    function KMP(p) {
+      let X = 0,
+          R = 256,
+          M = p.length,
+          dfa = new Array(M);
+      for (let i = 0; i < dfa.length; i++) dfa[i] = new Array(R); //创建长度为dfa.length的数组，每一项为一个对象
+
+      //初始化dfa[0],即初始的X状态，后面的状态要用这一状态来复制
+      for (let i = 0; i < R; i++) dfa[0][i] = 0;
+      dfa[0][p.charCodeAt(0)] = 1; //状态0时匹配到第一位总是进入状态1
+
+      //生成后面的状态机
+      for (let j = 1; j < M; j++) {
+          for (let c = 0; c < R; c++) dfa[j][c] = dfa[X][c]   //设置状态j的匹配失败项，从状态X复制
+          dfa[j][p.charCodeAt(j)] = j + 1;//设置匹配成功项
+          X = dfa[X][p.charCodeAt(j)] //计算下一状态的 X
       }
-      return state === end
+      return dfa;
+  }
 
-    }
 
-
-    console.log(find("abcabcabx")); // true
-    console.log(find("213abx")); // false
-    console.log(find("abcaabcabx")); // true
+    console.log(match("ababcababx","ababx")); // true
+    console.log(match("ababcababx","abcabx")); // false
 
   </script>
   

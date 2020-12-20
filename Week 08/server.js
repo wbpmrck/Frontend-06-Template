@@ -5,9 +5,10 @@ http.createServer( (req,resp)=>{
   req.on('error',err=>{
     console.error(err);
   }).on('data',chunk => {
+    console.log(chunk);
     body.push(chunk.toString());
   }).on("end",()=>{
-    body = Buffer.concat(body).toString();
+    // body = Buffer.concat(body).toString();
     console.log("body:",body);
     resp.writeHead(200,{"Content-Type":"text/html"});
     resp.end("hello world!")
