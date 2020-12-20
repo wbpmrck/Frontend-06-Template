@@ -1,0 +1,49 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>在一个字符串中，找到字符abcdef</title>
+</head>
+<body>
+
+  <script>
+
+    function findABCDEF(str){
+
+      let foundA = false;
+      let foundB = false;
+      let foundC = false;
+      let foundD = false;
+      let foundE = false;
+
+      for(let char of str){
+        if(char.toLowerCase() == "a"){
+          foundA = true;
+        }else if(char.toLowerCase() == "b" && foundA){
+          foundB = true;
+        }else if(char.toLowerCase() == "c" && foundB){
+          foundC = true;
+        }else if(char.toLowerCase() == "d" && foundC){
+          foundD = true;
+        }else if(char.toLowerCase() == "e" && foundD){
+          foundE = true;
+        }else if(char.toLowerCase() == "f" && foundE){
+          return true;
+        }else{
+          foundA = false;
+          foundB = false;
+          foundC = false;
+          foundD = false;
+          foundE = false;
+        }
+      }
+      return false
+    }
+
+    console.log(findABCDEF("ab123abcdef")); // true
+    console.log(findABCDEF("3b123")); // false
+
+  </script>
+  
+</body>
+</html>

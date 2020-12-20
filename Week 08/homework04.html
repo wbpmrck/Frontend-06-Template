@@ -1,0 +1,32 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>在一个字符串中，找到字符ab</title>
+</head>
+<body>
+
+  <script>
+
+    function findAB(str){
+
+      let foundA = false;
+      for(let char of str){
+        if(char.toLowerCase() == "a"){
+          foundA = true;
+        }else if(char.toLowerCase() == "b" && foundA){
+          return true;
+        }else{
+          foundA = false;
+        }
+      }
+      return false
+    }
+
+    console.log(findAB("ab123")); // true
+    console.log(findAB("3b123")); // false
+
+  </script>
+  
+</body>
+</html>

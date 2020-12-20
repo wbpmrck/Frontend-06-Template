@@ -1,0 +1,77 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用状态机处理abcabx</title>
+</head>
+<body>
+
+  <script>
+
+    /*
+      对于目标字符串有重复的情况，需要对状态进行区分
+    */
+
+    function start(c){
+      if(c === "a")
+        return foundA;
+      else 
+        return start
+    }
+
+    function foundA(c){
+      if(c === "b")
+        return foundB;
+      else 
+        return start(c)
+    }
+    function foundB(c){
+      if(c === "c")
+        return foundC;
+      else 
+        return start(c)
+    }
+    function foundC(c){
+      if(c === "a")
+        return foundA2;
+      else 
+        return start(c)
+    }
+    function foundA2(c){
+      if(c === "b")
+        return foundB2;
+      else 
+        return start(c)
+    }
+    function foundB2(c){
+      if(c === "x")
+        return end;
+      else if(c === "c") //如果是c,则满足前半部分
+        return foundC
+      else 
+        return start(c)
+    }
+    function end(c){
+      return true
+    }
+
+    function find(str){
+      let state = start;
+      for(let c of str){
+        state = state(c);
+        if(state === true)
+          break;
+      }
+      return state === end
+
+    }
+
+
+    console.log(find("abcabcabx")); // true
+    console.log(find("213abx")); // false
+    console.log(find("abcaabcabx")); // true
+
+  </script>
+  
+</body>
+</html>
