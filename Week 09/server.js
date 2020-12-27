@@ -16,7 +16,7 @@ http.createServer( (req,resp)=>{
 `<html lang="en">
 <head>
   <style>
-    body div #myid {
+    body #myid {
       width:100px;
       background-color:$ff5000;
     }
@@ -26,6 +26,12 @@ http.createServer( (req,resp)=>{
     }
   </style>
 </head>
+<body>
+      <div>
+        <img />
+      </div>
+      <div id="myid"></div>
+</body>
 </html>`)
 
 //     resp.end(

@@ -104,6 +104,32 @@
 npm install css
 
 ```
+举例：在作业中我返回了这样的style标签：
+
+``` html
+<html lang="en">
+<head>
+  <style>
+    body div #myid {
+      width:100px;
+      background-color:$ff5000;
+    }
+    body div img {
+      width:30px;
+      background-color:$ff1111;
+    }
+  </style>
+</head>
+</html>
+
+```
+
+那么node.js中使用`css`模块进行解析之后，得到的ast截图：
+
+![](./res/ast.png)
+### 03.关于DOM树的构建
+
+简单的toyBrowser的DOM树的构建，直接使用栈结构就可以，其代码主要写在`emit`方法里，也就是token被解析出来之后
 
 ## 作业(**必做**)
 ### 01-完成第12节课上练习，提交至课程页面底下练习

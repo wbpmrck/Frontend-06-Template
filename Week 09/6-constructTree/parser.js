@@ -4,10 +4,53 @@ const EOF = Symbol("EOF");
 
 let currentToken = null; //保存当前解析的token
 let currentAttrbute = null; //保存当前解析的属性
+let currentTextNode = null; //保存当前的文本节点
+
+let stack = [{type:"document",children:[]}]; //用于构建DOM树的栈结构
+
 
 //产生token
 function emit(token){
-  console.log(token);
+  // console.log(token);
+  if(token.type === "text")
+    return;
+  let top = stack[stack.length-1];
+
+  if(token.type === "startTag"){
+    let element = {
+      type:"element",
+      children:[],
+      attributes:[]
+    };
+
+    //获取标签名称
+    element.tagName = token.tagName;
+
+    //获取属性
+    for(let p in token){
+      if(p !== "type" && p !== "tagName"){
+        element.attributes.push({
+          name:p,
+          value:token[p]
+        });
+      }
+    }
+
+    top.children.push(element);
+    element.parent = top;
+
+    if(!token.isSelfClosing)
+      stack.push(element)
+
+    currentTextNode = null;
+  }else if(token.type === "endTag"){
+    if(top.tagName !== token.tagName){
+      throw new Error("Tag start end doesn't match!")
+    }else{
+      stack.pop(); //配对成功，把元素从栈里取出
+    }
+    currentTextNode = null;
+  }
 }
 
 //初始状态。之所以叫做data是因为 whatwg 标准里是这样定义的：
@@ -225,4 +268,6 @@ module.exports.parseHTML = function(html){
     state = state(c)
   }
   state = state(EOF); // 为了防止页面本身没有结束符，这里人工加一个结束符
+
+  console.log(stack[0]);
 }
