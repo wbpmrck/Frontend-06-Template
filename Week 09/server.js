@@ -20,6 +20,9 @@ http.createServer( (req,resp)=>{
       width:100px;
       background-color:$ff5000;
     }
+    body div #myid {
+      width:200px;
+    }
     body div img {
       width:30px;
       background-color:$ff1111;

@@ -1,9 +1,5 @@
 /*
-  本小节内容：计算选择器与元素匹配
-
-  目前只实现了id,tag,class 3种简单的选择器
-
-  TODO:实现复合选择器，实现支持空格的 Class 选择器
+  本小节内容：生成computed属性
 
 */
 const { cpuUsage } = require("process");
@@ -77,9 +73,14 @@ function computeCSS(element){
       matched = true;
     
     if(matched){
-      //如果匹配上，需要应用样式到元素上
-      console.log(`element:`,element);
-      console.log(`match:`,rule);
+      var computedStyle = element.computedStyle;
+      for(let declaration of rule.declarations){
+        if(!computedStyle[declaration.property])
+          computedStyle[declaration.property] = {}
+        computedStyle[declaration.property].value = declaration.value; //这里面直接覆盖了元素的样式，没有考虑到选择器的优先级处理
+      }
+
+      console.log(element.computedStyle);
     }
   }
 }

@@ -1,9 +1,14 @@
 /*
-  本小节内容：计算选择器与元素匹配
+  本小节内容：生成computed属性
 
-  目前只实现了id,tag,class 3种简单的选择器
+  这一步会考虑选择器的优先级
 
-  TODO:实现复合选择器，实现支持空格的 Class 选择器
+                [inline,     id,     class,     tag]
+div div #id       0           1         0         2
+div #id1 #id2     0           2         0         1
+
+优先级：
+1、从左到右比较，只要大于就更加优先
 
 */
 const { cpuUsage } = require("process");
@@ -17,6 +22,41 @@ let currentTextNode = null; //保存当前的文本节点
 let stack = [{type:"document",children:[]}]; //用于构建DOM树的栈结构
 
 let rules = [];//暂存css规则
+
+
+
+//根据选择器 计算优先级
+//TODO:这里没有考虑解析复合选择器
+function specificity(selector){
+  let p =[0,0,0,0]; //四元组
+  let selectorParts = selector.split(" ");
+  for(let part of selectorParts){
+    if(part.charAt(0) === "#"){
+      p[1] += 1;
+    }else if(part.charAt(0) === "."){
+      p[2] += 1;
+    }else{
+      p[3] += 1;
+    }
+  }
+  return p;
+}
+
+//比较2个优先级
+function compare(sp1,sp2){
+  if(sp1[0] - sp2[0])
+    return sp1[0] - sp2[0]
+
+  if(sp1[1] - sp2[1])
+    return sp1[1] - sp2[1]
+
+  if(sp1[2] - sp2[2])
+    return sp1[2] - sp2[2]
+
+    return sp1[3] - sp2[3]
+}
+
+
 
 function addCSSRules(text){
   let ast = css.parse(text);
@@ -77,9 +117,24 @@ function computeCSS(element){
       matched = true;
     
     if(matched){
-      //如果匹配上，需要应用样式到元素上
-      console.log(`element:`,element);
-      console.log(`match:`,rule);
+
+      let sp = specificity(rule.selectors[0]);
+
+      var computedStyle = element.computedStyle;
+      for(let declaration of rule.declarations){
+        if(!computedStyle[declaration.property])
+          computedStyle[declaration.property] = {}
+
+        if(!computedStyle[declaration.property].specificity){
+          computedStyle[declaration.property].value = declaration.value;
+          computedStyle[declaration.property].specificity = sp;
+        }else if(compare(computedStyle[declaration.property].specificity,sp)<0){
+          computedStyle[declaration.property].value = declaration.value;
+          computedStyle[declaration.property].specificity = sp;
+        }
+      }
+
+      console.log(element.computedStyle);
     }
   }
 }
