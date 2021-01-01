@@ -9,7 +9,9 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "images": "^3.2.3"
+  },
   "devDependencies": {
     "css": "^3.0.0"
   }
