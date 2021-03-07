@@ -3,7 +3,7 @@ const { cpuUsage } = require("process");
 const EOF = Symbol("EOF");
 
 let currentToken = null; //保存当前解析的token
-let currentAttrbute = null; //保存当前解析的属性
+let currentAttribute = null; //保存当前解析的属性
 let currentTextNode = null; //保存当前的文本节点
 
 let stack = [{type:"document",children:[]}]; //用于构建DOM树的栈结构

@@ -57,6 +57,23 @@
         "<node_internals>/**"
       ],
       "program": "${workspaceFolder}/Week 10/6/client.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "week18-1",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "cwd": "${workspaceFolder}/Week 18/html-parser/",
+      "runtimeArgs": [
+        // "--require","@babel/register"
+      ],
+      // "sourceMaps": true,
+      "args": [
+        "--require","@babel/register"
+      ],
+      "program": "./node_modules/.bin/mocha"
     }
   ]
 }

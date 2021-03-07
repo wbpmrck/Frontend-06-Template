@@ -21,6 +21,9 @@
 - args:传递给
 - 配置sourceMap来激活断点：因为经过babel的转码所以需要启用sourceMap来使得断点正确
 
+> 注意，由于我的vscode工程和视频老师的不一样，我是所有文件夹都在一个工程里，所以需要手动修改 `vscode run config`文件的参数:`cwd`:
+> "cwd": "${workspaceFolder}/Week 18/html-parser/",
+
 ## 作业(**必做**)
 ### 01-完成课上练习，提交至Github
 
