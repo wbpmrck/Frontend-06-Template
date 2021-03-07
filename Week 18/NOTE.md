@@ -14,7 +14,6 @@
   - babel-plugin-istanbul加入到babel插件
   - nyc-config-babel 加入到 .nycrc
 
-
 ### 使用vscode配置来启用调试
 
 - runtimeArgs:传递给node.js的命令行参数
